@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Расписание</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Расписание</h1>
+
+    <h2>Админка</h2>
+    <form id="adminForm">
+        <label for="date">Дата:</label>
+        <input type="date" id="date" name="date">
+        <label for="status">Статус:</label>
+        <select id="status" name="status">
+            <option value="занято">Занято</option>
+            <option value="свободно">Свободно</option>
+        </select</form>
+
+    <button type="button" onclick="addEntry()">Добавить</button>
+
+    <h2>Расписание</h2>
+    <table id="schedule">
+        <tr>
+            <th>Дата</th>
+            <th>Статус</th>
+        </tr>
+    </table>
+
+    <script>
+        // Получение всех записей из расписания
+        function getSchedule() {
+            fetch('/schedule')
+                .then(response => response.json())
+                .then(data => {
+                    const scheduleTable = document.getElementById('schedule');
+                    scheduleTable.innerHTML = '';
+                    data.forEach(entry => {
+                        const row = scheduleTable.insertRow();
+                        const cell1 = row.insertCell(0);
+                        const cell2 = row.insertCell(1);
+                        cell1.innerHTML = entry.date;
+                        cell2.innerHTML = entry.status;
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+
+        // Добавление новой записи в расписание
+        function addEntry() {
+            const dateInput = document.getElementById('date');
+            const statusInput = document.getElementById('status');
+            const date = dateInput.value;
+            const status = statusInput.value;
+            const newEntry = { date, status };
+
+            fetch('/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newEntry)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    dateInput.value = '';
+                    statusInput.value = '';
+                    getSchedule();
+                })
+                .catch(error => console.error(error));
+        }
+
+        // Загрузка расписания при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            getSchedule();
+        });
+    </script>
+</body>
+</html>
